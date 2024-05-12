@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,python,git
-
+pytorch3d/
+measure_LBS_error/resource
+measure_LBS_error/sample_RP_T
 
 logs/
 *.zip
