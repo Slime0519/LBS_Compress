@@ -96,6 +96,7 @@ def main():
     
     chamfer_dict = dict()
     
+    print(f"total number of mesh : {len(MESH_NAME_LIST)}")
     for mesh_name in MESH_NAME_LIST:
         # print(f"evaluation for {mesh_name}...")
         p2s_list, chamfer_list, p2s_out_list, chamfer_out_list  = deform_test_for_single_mesh(mesh_name, POSE_SET[:10], lbs_flatten=True, verbose=False)
