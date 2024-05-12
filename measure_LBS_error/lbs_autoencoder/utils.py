@@ -29,7 +29,7 @@ def postprocess_mesh(mesh, num_faces=2000):
         num_faces = total_num_faces // 100
     cc = trimesh.graph.connected_components(
         mesh.face_adjacency, min_len=3)
-    mask = np.zeros(total_num_faces, dtype=np.bool)
+    mask = np.zeros(total_num_faces, dtype=bool)
     cc = np.concatenate([
         c for c in cc if len(c) > num_faces
     ], axis=0)
