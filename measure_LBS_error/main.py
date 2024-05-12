@@ -66,7 +66,10 @@ def deform_test_for_single_mesh(mesh_name, pose_list, lbs_flatten=False, verbose
         print(f"mse loss: {mseloss} / kl divergence: {kldiv}")
     # ------ end test lbs compression and decompression ------
     
+    p2s_dist_list = []
+    p2s_outlier_list = []
     chamfer_dist_list = []
+    chamfer_outlier_list = []
     
     for pose in tqdm(pose_list):
         full_pose = torch.zeros((55, 3))
@@ -76,31 +79,52 @@ def deform_test_for_single_mesh(mesh_name, pose_list, lbs_flatten=False, verbose
         deformed_scan_mesh = deform_mesh(scan_canon_vertices, lbs, full_pose, smplx_transl_tensor, scale_params, mesh)
         deformed_scan_mesh_compressed = deform_mesh(scan_canon_vertices, restored_lbs, full_pose, smplx_transl_tensor, scale_params, mesh)
         
-        chamfer_dist = chamfer_distance(deformed_scan_mesh, deformed_scan_mesh_compressed)[0]
-        chamfer_dist_list.append(chamfer_dist.cpu().numpy())
+        # chamfer_dist = chamfer_distance(deformed_scan_mesh, deformed_scan_mesh_compressed)[0]
+        p2s, chamfer, p2s_out, chamfer_out = chamfer_and_p2s(deformed_scan_mesh, deformed_scan_mesh_compressed)
+        chamfer_dist_list.append(chamfer)
+        p2s_dist_list.append(p2s)
+        p2s_outlier_list.append(p2s_out)
+        chamfer_outlier_list.append(chamfer_out)
     
-    return chamfer_dist_list, np.mean(np.array(chamfer_dist_list))
+    return p2s_dist_list, chamfer_dist_list, p2s_outlier_list, chamfer_outlier_list
     
 def main():
-    total_list = []
+    total_chamfer_list = []
+    total_p2s_list = []
+    total_p2s_out_list = []
+    total_chamfer_out_list = []
+    
     chamfer_dict = dict()
     
-    # mesh_list = MESH_NAME_LIST
     for mesh_name in MESH_NAME_LIST:
         # print(f"evaluation for {mesh_name}...")
-        chamfer_list, chamfer_mean = deform_test_for_single_mesh(mesh_name, POSE_SET, lbs_flatten=True, verbose=False)
-        total_list += chamfer_list
-        chamfer_dict[mesh_name] = np.array(chamfer_list)
+        p2s_list, chamfer_list, p2s_out_list, chamfer_out_list  = deform_test_for_single_mesh(mesh_name, POSE_SET[:10], lbs_flatten=True, verbose=False)
         
-        print(f"chamfer mean for {mesh_name}: {chamfer_mean}")
+        chamfer_dict[mesh_name] = dict()
+        chamfer_dict[mesh_name]["chamfer"] = np.array(chamfer_list)
+        chamfer_dict[mesh_name]["p2s"] = np.array(p2s_list)
+        chamfer_dict[mesh_name]["p2s_out"] = np.array(p2s_out_list)
+        chamfer_dict[mesh_name]["chamfer_out"] = np.array(chamfer_out_list)
+        
+        total_chamfer_list.extend(chamfer_list)
+        total_p2s_list.extend(p2s_list)
+        total_p2s_out_list.extend(p2s_out_list)
+        total_chamfer_out_list.extend(chamfer_out_list)
+        
+        print(f"chamfer mean for {mesh_name}: {np.mean(np.array(chamfer_list))}")
+        print(f"p2s mean for {mesh_name}: {np.mean(np.array(p2s_list))}")
+        
         
     with open("chamfer_dict.pkl", "wb") as f:
         pickle.dump(chamfer_dict, f)
     
-    total_list = np.array(total_list)
+    total_list = np.array(total_chamfer_list)
+    total_p2s_list = np.array(total_p2s_list)
     np.save("total_chamfer_list.npy", total_list)
+    np.save("total_p2s_list.npy", total_p2s_list)
     
     print(f"total chamfer mean: {np.mean(np.array(total_list))}")
+    print(f"total p2s mean: {np.mean(np.array(total_p2s_list))}")
     
 if __name__ == "__main__":
     main()
