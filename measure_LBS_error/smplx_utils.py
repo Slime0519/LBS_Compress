@@ -8,7 +8,7 @@ import numpy as np
 import torch.nn.functional as F
 
 from measure_LBS_error.path import *
-
+from copy import deepcopy
 
 def transform_mat(R, t):
     ''' Creates a batch of transformation matrices
@@ -188,9 +188,7 @@ def load_mesh(mesh_name, lbs=True):
     # mesh = trimesh.Trimesh(vertices=mesh_dict["vertices"], faces=mesh_dict["faces"])
     mesh = trimesh.load(mesh_path)
     lbs = mesh_dict["lbs"]
-    print(mesh.vertices.shape)
-    print(lbs.shape)
-    
+        
     return mesh, lbs
 
 smpl_gender = 'male'
@@ -215,13 +213,13 @@ def get_smplx_model_for_mesh(mesh_name):
         smpl_params = json.load(f)
     # smplx_model = set_smplx_model(smplx_json_path)
     
-    smpl_output, smpl_model = set_smpl_model(smplx_template, smpl_params, device=device)
+    smpl_output, smpl_model = set_smpl_model(deepcopy(smplx_template), smpl_params, device=device)
     
     return smpl_output, smpl_model, smpl_params
 
 def set_scale(smplx_model):
     v_pose_smpl = trimesh.Trimesh(smplx_model.v_template.cpu(),
-                                    smplx_model.faces)
+                                      smplx_model.faces)
     centroid_smpl = v_pose_smpl.bounding_box.centroid
     scale_smpl = 2.0 / np.max(v_pose_smpl.bounding_box.extents)
     centroid_scan = np.zeros_like(centroid_smpl)
