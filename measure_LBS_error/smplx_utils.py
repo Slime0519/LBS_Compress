@@ -181,10 +181,12 @@ def deform_vertices(vertices, smpl_model, lbs, full_pose, inverse=False, return_
     
 def load_mesh(mesh_name, lbs=True):
     mesh_dict_path = get_path_dict(mesh_name)["GT_CANON"] / f"{mesh_name}.npy"
+    mesh_path = get_path_dict(mesh_name)["GT_CANON"] / f"{mesh_name}.obj"
     mesh_dict = np.load(mesh_dict_path, allow_pickle=True).item()
-    
+
     # load mesh
-    mesh = trimesh.Trimesh(vertices=mesh_dict["vertices"], faces=mesh_dict["faces"])
+    # mesh = trimesh.Trimesh(vertices=mesh_dict["vertices"], faces=mesh_dict["faces"])
+    mesh = trimesh.load(mesh_path)
     lbs = mesh_dict["lbs"]
     print(mesh.vertices.shape)
     print(lbs.shape)
